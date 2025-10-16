@@ -35,7 +35,7 @@ namespace LogicaDeNegocio.Models
         [ForeignKey("ClienteId")]
         public Cliente? Cliente { get; set; }
 
-        public ICollection<Turno>? Turnos { get; set; } = new HashSet<Turno>();
+        public ICollection<Turno>? Turnos { get; set; } = new List<Turno>();
     }
 
 }

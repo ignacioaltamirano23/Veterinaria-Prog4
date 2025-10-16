@@ -23,6 +23,6 @@ namespace LogicaDeNegocio.Models
         [Display(Name = "Dirección")]
         public string Direccion { get; set; } = string.Empty;
 
-        public ICollection<Mascota>? Mascotas { get; set; } = new HashSet<Mascota>();  
+        public ICollection<Mascota>? Mascotas { get; set; } = new List<Mascota>();  
     }
 }

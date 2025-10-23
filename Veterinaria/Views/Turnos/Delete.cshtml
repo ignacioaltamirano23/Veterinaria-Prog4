@@ -1,39 +1,96 @@
-﻿@model LogicaDeNegocio.Models.Turno
+﻿
+
+@using LogicaDeNegocio.Models
+@model LogicaDeNegocio.Models.Turno
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Eliminar Turno";
 }
 
-<h1>Eliminar</h1>
+<h1 class="fw-bold text-dark mb-4">Eliminar Turno</h1>
 
-<h3>¿Seguro que querés eliminar este turno?</h3>
-<div>
-    <h4>Turno</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FechaHora)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FechaHora)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EstadoTurno)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EstadoTurno)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Mascota)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Mascota.Especie)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Eliminar" class="btn btn-danger" /> |
-        <a asp-action="Index">Volver a la lista</a>
-    </form>
+<div class="row justify-content-md-start justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm colorful-form-card">
+            <div class="card-header colorful-form-header">
+                <h5 class="card-title mb-0 text-white">
+                    <i class="fas fa-trash-alt me-2"></i>Confirmar Eliminación
+                </h5>
+            </div>
+            <div class="card-body p-4">          
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-semibold mb-2 align-self-center">
+                        @Html.DisplayNameFor(model => model.FechaHora)
+                    </div>
+                    <div class="col-sm-8 mb-3">
+                        <div class="form-control bg-light border-0">@Html.DisplayFor(model => model.FechaHora)</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-semibold mb-2">
+                        @Html.DisplayNameFor(model => model.EstadoTurno)
+                    </div>
+                    <div class="col-sm-8 mb-3">
+                        <span class="badge p-2 colorful-badge @(Model.EstadoTurno == EstadoTurno.Confirmado ? "colorful-badge-success" : Model.EstadoTurno == EstadoTurno.Pendiente ? "colorful-badge-warning" : "colorful-badge-danger")">
+                            @Model.EstadoTurno
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-sm-4 fw-semibold mb-2 align-self-center">
+                        @Html.DisplayNameFor(model => model.Mascota)
+                    </div>
+                    <div class="col-sm-8">
+                        <div class="form-control bg-light border-0">@Html.DisplayFor(model => model.Mascota.Especie)</div>
+                    </div>
+                </div>
+
+                <form id="eliminarForm" asp-action="Delete" class="mt-4">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="fas fa-trash-alt me-2"></i>Eliminar
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary colorful-btn-hover">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+         $(function() {
+            $('#eliminarForm').submit(function(e) {
+                e.preventDefault();
+                var form = this;
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "¡Esta acción no se puede deshacer!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fas fa-trash-alt me-2"></i>Sí, eliminar',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+                    reverseButtons: true,
+                    customClass: {
+                        popup: 'rounded-3',
+                        confirmButton: 'btn btn-danger',
+                        cancelButton: 'btn btn-secondary',
+                        actions: 'gap-3' 
+                    },
+                    buttonsStyling: false
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        $(form).unbind('submit').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

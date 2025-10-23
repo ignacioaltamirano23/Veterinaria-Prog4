@@ -1,36 +1,250 @@
-﻿@model IEnumerable<LogicaDeNegocio.Models.Turno>
+﻿@using LogicaDeNegocio.Models
+@model IEnumerable<LogicaDeNegocio.Models.Turno>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Turnos";
 }
 
-<h1>Turnos</h1>
+<h1 class="fw-bold text-dark mb-4">Turnos</h1>
 
-<p>
-    <a asp-action="Create">Crear Turno</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.FechaHora)</th>
-            <th>@Html.DisplayNameFor(model => model.EstadoTurno)</th>
-            <th class="text-start">@Html.DisplayNameFor(model => model.Mascota)</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.FechaHora</td>
-                <td>@item.EstadoTurno</td>
-                <td>@($"{item.Mascota.Nombre} ({item.Mascota.Raza})")</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Detalles</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Eliminar</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+@if (!Model.Any())
+{
+    <!-- Mostrar si no hay turnos -->
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow colorful-empty-card">
+                <div class="card-body text-center p-5">
+                    <div class="colorful-empty-state">
+                        <div class="colorful-icon-container mb-4">
+                            <div class="colorful-icon-background">
+                                <i class="fas fa-calendar-day fa-3x text-white"></i>
+                            </div>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-3">No hay turnos registrados</h4>
+                        <p class="text-muted mb-4">No se encontraron citas agendadas en el sistema</p>
+                        <a asp-action="Create" class="btn btn-primary colorful-btn-hover btn-lg px-4">
+                            <i class="fas fa-plus me-2"></i>Crear Turno
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Botón de acción principal -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a asp-action="Create" class="btn btn-primary colorful-btn-hover">
+            <i class="fas fa-plus me-2"></i>Crear Turno
+        </a>
+    </div>
+
+    <!-- Filtro por estado -->
+    <div class="row mb-3 justify-content-end">
+        <div class="col-md-12 col-lg-6">
+            <div class="card border-0 shadow-sm colorful-filter-card">
+                <div class="card-body py-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center">
+                        <label class="form-label mb-2 mb-md-0 me-2 text-center text-md-start">
+                            <strong>Filtrar por estado:</strong>
+                        </label>
+                        <div class="btn-group btn-group-sm gap-2" role="group">
+                            <button type="button" class="btn btn-outline-secondary active" data-estado="todos">Todos</button>
+                            <button type="button" class="btn btn-outline-warning" data-estado="pendiente">Pendientes</button>
+                            <button type="button" class="btn btn-outline-success" data-estado="confirmado">Confirmados</button>
+                            <button type="button" class="btn btn-outline-danger" data-estado="cancelado">Cancelados</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de turnos -->
+    <div class="card border-0 shadow-sm colorful-table-card mb-4 px-3">
+        <div class="card-body p-0">
+            <table id="tablaTurnos" class="table table-hover w-100 mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-start ps-4">Fecha y Hora</th>
+                        <th class="text-start">Estado</th>
+                        <th class="text-start">Mascota</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="align-middle">
+                            <td class="text-start ps-4 fw-semibold" data-order="@item.FechaHora.ToString("yyyyMMddHHmm")">
+                                @item.FechaHora.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td>
+                                <span class="badge p-2 colorful-badge @(item.EstadoTurno == EstadoTurno.Confirmado ? "colorful-badge-success" : item.EstadoTurno == EstadoTurno.Pendiente ? "colorful-badge-warning" : "colorful-badge-danger")">
+                                    @item.EstadoTurno
+                                </span>
+                            </td>
+                            <td>
+                                <strong class="text-dark">@item.Mascota?.Nombre</strong>
+                                <small class="text-muted d-block">@item.Mascota?.Raza</small>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary colorful-btn-outline"
+                                       data-bs-toggle="tooltip" title="Editar turno">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info colorful-btn-outline"
+                                       data-bs-toggle="tooltip" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger colorful-btn-outline"
+                                       data-bs-toggle="tooltip" title="Eliminar turno">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="row mt-4 justify-content-center mb-3">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm colorful-chart-card">
+                <div class="card-header colorful-chart-header">
+                    <h5 class="card-title mb-0 text-white text-center">
+                        <i class="fas fa-chart-pie me-2"></i>Distribución de Turnos por Estado
+                    </h5>
+                </div>
+                <div class="chart-container">
+                    <canvas id="estadoTurnosChart"></canvas>
+                </div>
+                <div class="card-footer colorful-chart-footer">
+                    <small class="text-muted">Total de turnos: @Model.Count()</small>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        $(document).ready(function() {
+          // Mensajes de éxito con SweetAlert2: muestra una notificación según el tipo de acción
+            const success = '@TempData["MensajeExito"]'; // Obtiene mensaje de éxito desde TempData
+
+            if (success && success.trim() !== '') {
+               const esCreacion = success.includes('registrado');
+               const esActualizacion = success.includes('acutalizado');
+               const esEliminacion = success.includes('eliminado');
+
+                let title = '¡Éxito!';
+                if (esCreacion) title = '¡Turno creado!';
+                if (esActualizacion) title = '¡Turno actualizado!';
+                if (esEliminacion) title = '¡Turno eliminado!';
+
+                Swal.fire({
+                    icon: 'success',
+                    title: title,
+                    text: success,
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+            }
+
+            // Configuración de DataTable
+            const table = $('#tablaTurnos').DataTable({
+                pageLength: 10, 
+                lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]], // Opciones de cantidad de registros
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/2.3.4/i18n/es-ES.json' // Cargar idioma español
+                },
+                order: [[0, 'desc']], // Ordenar por la primera columna (fecha) de forma descendente
+            });
+
+            // Filtro por estado: permite filtrar turnos por estado al hacer clic en los botones
+            $('[data-estado]').on('click', function() {
+                const status = $(this).data('estado');
+                $('[data-estado]').removeClass('active');
+                $(this).addClass('active'); 
+
+                if (status === 'todos') {
+                    table.columns().search('').draw(); // Si es 'todos', se muestran todos los turnos
+                } else {
+                    table.column(1).search(status, true, false).draw(); // Filtra por estado en la columna 1
+                }
+            });
+
+            // Muestra información al pasar el mouse sobre los botones de acción de la tabla
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover',
+                    delay: { "show": 250, "hide": 100 },
+                    placement: 'top',
+                    animation: true,
+                    container: 'body'
+                });
+            });
+
+            // Chart js: gráfico para mostrar la distribución de estados de los turnos
+            const ctx = document.getElementById('estadoTurnosChart');
+            new Chart(ctx, {
+                type: 'doughnut', // Tipo de gráfico
+                data: {
+                    labels: ['Pendiente', 'Confirmado', 'Cancelado'], // Etiquetas del gráfico
+                    datasets: [{
+                        data: [
+                            @Model.Count(t => t.EstadoTurno == EstadoTurno.Pendiente),
+                            @Model.Count(t => t.EstadoTurno == EstadoTurno.Confirmado),
+                            @Model.Count(t => t.EstadoTurno == EstadoTurno.Cancelado)
+                        ],
+                        backgroundColor: [
+                            '#FFA726', // Color para 'Pendiente'
+                            '#28A745', // Color para 'Confirmado'
+                            '#DC3545'  // Color para 'Cancelado'
+                        ],
+                        borderColor: '#fff', 
+                        borderWidth: 3, 
+                        hoverOffset: 15 // Desplazamiento al hacer hover sobre el gráfico
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // No mantener la relación de aspecto fija
+                    cutout: '50%', // Hace el gráfico "donut" 
+                    plugins: {
+                        legend: {
+                            position: 'bottom', 
+                            labels: {
+                                padding: 20, // Espaciado entre las etiquetas de la leyenda
+                                usePointStyle: true, // Usar puntos en lugar de cuadrados para los elementos de la leyenda
+                                pointStyle: 'circle' // Estilo de los puntos en la leyenda
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    // Muestra el valor y el porcentaje en el tooltip
+                                    const label = context.label || '';
+                                    const valor = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const porcentaje = Math.round((valor / total) * 100);
+                                    return `${label}: ${valor} (${porcentaje}%)`; // Formato del tooltip
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

@@ -77,8 +77,11 @@ namespace VeterinariaTest.Controllers
             {
                 _context.Add(turno);
                 await _context.SaveChangesAsync();
+
+                TempData["MensajeExito"] = "El turno fue registrado correctamente.";
+
                 return RedirectToAction(nameof(Index));
-            }
+            }            
 
             ViewData["MascotaId"] = new SelectList(
                 _context.Mascotas
@@ -169,8 +172,11 @@ namespace VeterinariaTest.Controllers
                         throw;
                     }
                 }
+                TempData["MensajeExito"] = "El turno fue actualizado correctamente.";
+
                 return RedirectToAction(nameof(Index));
             }
+            
 
             ViewData["MascotaId"] = new SelectList(
                 _context.Mascotas
@@ -223,9 +229,11 @@ namespace VeterinariaTest.Controllers
             if (turno != null)
             {
                 _context.Turnos.Remove(turno);
+                await _context.SaveChangesAsync();
+
+                TempData["MensajeExito"] = "El turno fue eliminado correctamente.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

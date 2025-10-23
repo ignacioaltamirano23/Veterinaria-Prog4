@@ -7,7 +7,7 @@
 @if (!User.Identity.IsAuthenticated)
 {
     <div class="text-center">
-        <a asp-controller="Login" asp-action="Login" class="btn btn-google btn-lg w-100 py-3 mb-3">
+        <a asp-controller="Login" asp-action="Login" class="btn btn-primary btn-md py-3 mb-3">
             <i class="fab fa-google me-2"></i>
             Iniciar Sesión con Google
         </a>
@@ -32,9 +32,9 @@ else
         <h6 class="fw-bold">Bienvenido, @name!</h6>
         <p class="text-muted small mb-3">@email</p>
 
-        <a asp-controller="Login" asp-action="Logout" class="btn btn-outline-danger btn-lg py-2 mt-3">
+        <a asp-controller="Login" asp-action="Logout" class="btn btn-outline-danger btn-lg py-2">
             <i class="fas fa-sign-out-alt me-2"></i>
-            Logout
+            Cerrar sesión
         </a>
 
     </div>

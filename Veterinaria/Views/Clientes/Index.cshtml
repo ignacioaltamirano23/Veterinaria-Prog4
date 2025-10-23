@@ -9,7 +9,7 @@
 <p>
     <a asp-action="Create">Crear Cliente</a>
 </p>
-<table class="table">
+<table id="tablaClientes">
     <thead>
         <tr>
             <th>
@@ -45,3 +45,23 @@
 }
     </tbody>
 </table>
+
+<div>
+    <canvas id="clientesChart"></canvas>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>        
+        $(document).ready(function() {
+        
+        // DataTable
+        $('#tablaClientes').DataTable({
+            pageLength: 10,
+            responsive: true
+        });
+        
+    });
+    </script>
+    
+}

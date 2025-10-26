@@ -4,56 +4,94 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Mascotas</h1>
+<h1 class="fw-bold text-dark mb-4">Mascotas</h1>
 
-<p>
-    <a asp-action="Create">Crear Mascota</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Nombre)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Especie)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Raza)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FechaNacimiento)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Cliente)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nombre)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Especie)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Raza)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FechaNacimiento)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Cliente.Nombre)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Detalles</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Eliminar</a>
-            </td>
-        </tr>
+<!-- Botón de acción principal -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a asp-action="Create" class="btn btn-primary colorful-btn-hover">
+        <i class="fas fa-plus me-2"></i>Crear Mascota
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm colorful-table-card mb-4 px-3">
+    <div class="card-body p-0">
+            
+        <table id="tablaMascota" class="table table-hover w-100 mb-0">
+            <thead>
+                <tr>
+                    <th class="text-start">Nombre</th>
+                    <th class="text-start">Especie</th>
+                    <th class="text-start">Raza</th>
+                    <th class="text-start">Fecha de Nacimiento</th>
+                    <th class="text-start">Cliente</th> 
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="align-middle">
+
+                        <td class="text-start">
+                            <strong class="text-dark">@item.Nombre</strong>
+                        </td>
+
+                        <td class="align-middle">
+                            <span class="badge p-2 colorful-badge-success">
+                                <strong class="text-white">@item.Especie</strong>
+                            </span>
+                        </td>
+
+                        <td class="text-start">
+                            <span class="badge p-2 colorful-badge-warning">
+                                <strong class="text-white">@item.Raza</strong>
+                            </span>
+                        </td>
+
+                        <td class="text-start ps-4 fw-semibold" data-order="@item.FechaNacimiento.ToString("yyyyMMddHHmm")">
+                            @item.FechaNacimiento.ToString("dd/MM/yyyy")
+                        </td>
+                        <td class="text-start">
+                            @item.Cliente.Nombre
+                        </td>
+
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary colorful-btn-outline"
+                                   data-bs-toggle="tooltip" title="Editar turno">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info colorful-btn-outline"
+                                   data-bs-toggle="tooltip" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger colorful-btn-outline"
+                                   data-bs-toggle="tooltip" title="Eliminar turno">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+    <script>
+        $('#tablaMascota').DataTable({
+                pageLength: 10,
+                lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
+                responsive: true,
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/2.3.4/i18n/es-ES.json' 
+                },
+                order: [[0, 'desc']],
+            });
+    </script>
 }
-    </tbody>
-</table>

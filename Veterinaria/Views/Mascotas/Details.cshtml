@@ -1,0 +1,153 @@
+﻿@using LogicaDeNegocio.Models
+@model LogicaDeNegocio.Models.Mascota
+
+@{
+    ViewData["Title"] = "Historial de Mascota";
+    var edad = DateTime.Now.Year - Model.FechaNacimiento.Year;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold">
+        <i class="fas fa-history me-3 icono-gradient"></i>
+        @ViewData["Title"]
+    </h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver a Mascotas
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header colorful-form-header text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-paw me-2"></i>Información de la Mascota</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="colorful-icon-background ms-0 me-3" style="width: 60px; height: 60px;">
+                        <i class="fas fa-paw text-white fa-2x"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">@Model.Nombre</h4>
+                        <span class="badge bg-info">@Model.Especie</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold text-primary">Raza</label>
+                    <p class="mb-0">@Model.Raza</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="fw-bold text-primary">Fecha de Nacimiento</label>
+                    <p class="mb-0">
+                        @Model.FechaNacimiento.ToString("dd/MM/yyyy")
+                        <br>
+                        <small class="text-muted">                            
+                            @edad año(s)
+                        </small>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header colorful-form-header text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-user me-2"></i>Dueño</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="colorful-icon-background ms-0 me-3" style="width: 60px; height: 60px;">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">@Model.Cliente.Usuario.Nombre</h6>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <i class="fas fa-envelope me-2 text-muted"></i>
+                    @Model.Cliente.Usuario.Email
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Cliente.Usuario.Telefono))
+                {
+                    <div class="mb-2">
+                        <i class="fas fa-phone me-2 text-muted"></i>
+                        @Model.Cliente.Usuario.Telefono
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Cliente.Usuario.Direccion))
+                {
+                    <div>
+                        <i class="fas fa-map-marker-alt me-2 text-muted"></i>
+                        <small>@Model.Cliente.Usuario.Direccion</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header colorful-form-header text-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Historial de Turnos</h5>
+                    <span class="badge bg-light text-dark">@(Model.Turnos?.Count ?? 0) turnos</span>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (Model.Turnos != null && Model.Turnos.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th><i class="fas fa-calendar me-1"></i>Fecha y Hora</th>
+                                    <th><i class="fas fa-user-md me-1"></i>Veterinario</th>
+                                    <th><i class="fas fa-tag me-1"></i>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var turno in Model.Turnos.OrderByDescending(t => t.FechaHora))
+                                {
+                                    <tr>
+                                        <td class="align-middle">
+                                            @turno.FechaHora.ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td class="align-middle">
+                                            @turno.Veterinario?.Usuario?.Nombre
+                                        </td>
+                                        <td class="align-middle">
+                                            @{
+                                                var badgeClass = turno.EstadoTurno switch
+                                                {
+                                                    EstadoTurno.Confirmado => "bg-success",
+                                                    EstadoTurno.Pendiente => "bg-warning",
+                                                    EstadoTurno.Cancelado => "bg-danger",
+                                                    _ => "bg-secondary"
+                                                };
+                                            }
+                                            <span class="badge @badgeClass">@turno.EstadoTurno</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <div class="colorful-icon-background mx-auto mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-calendar-times text-white fa-2x"></i>
+                        </div>
+                        <h5 class="mb-3">No hay turnos registrados</h5>
+                        <p class="mb-0">Esta mascota no tiene turnos en el historial.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

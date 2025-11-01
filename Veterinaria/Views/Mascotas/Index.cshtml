@@ -1,0 +1,182 @@
+﻿@model IEnumerable<LogicaDeNegocio.Models.Mascota>
+
+@{
+    ViewData["Title"] = "Gestión de Mascotas";
+    var esVeterinario = User.IsInRole("Veterinario");
+    var esAdministrador = User.IsInRole("Administrador");
+}
+
+@if (!Model.Any() && esAdministrador)
+{
+    <div class="card-body text-center d-flex justify-content-center align-items-center py-5">
+        <div class="colorful-empty-card border-0">
+            <div class="colorful-icon-background m-auto mb-3">
+                <i class="fas fa-paw text-white fa-2x"></i>
+            </div>
+            <h4 class="text-muted mb-3">No hay mascotas registradas</h4>
+            <p class="text-muted mb-4">Comenzá registrando la primera mascota en el sistema.</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Registrar Primera Mascota
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5 fw-bold">
+            <i class="fas fa-paw me-3 icono-gradient"></i>
+            @(esVeterinario ? "Mascotas" : "Gestión de Mascotas")
+        </h1>
+        @if (esAdministrador)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Registrar Mascota
+            </a>
+        }
+    </div>
+
+    <div class="card colorful-table-card shadow-sm">
+        <div class="card-header colorful-form-header text-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    @(esVeterinario ? "Mascotas del Sistema" : "Gestión de Mascotas")
+                </h5>
+                <span class="badge bg-light text-dark">@Model.Count() mascotas</span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive p-3">
+                <table class="table table-hover table-striped mb-0" id="tablaMascotas">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-paw me-1"></i>Nombre</th>
+                            <th><i class="fas fa-dog me-1"></i>Especie</th>
+                            <th><i class="fas fa-paw me-1"></i>Raza</th>
+                            <th><i class="fas fa-calendar me-1"></i>Fecha Nacimiento</th>
+                            <th><i class="fas fa-user me-1"></i>Dueño</th>
+                            <th><i class="fas fa-phone me-1"></i>Contacto</th>
+                            <th class="text-center"><i class="fas fa-cogs me-1"></i>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var mascota in Model)
+                        {
+                            <tr>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <div class="ms-0 rounded-circle d-flex me-3 colorful-icon-background" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-paw text-white"></i>
+                                        </div>
+                                        <div>
+                                            <strong>@mascota.Nombre</strong>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="align-middle">
+                                    <span class="badge bg-info">@mascota.Especie</span>
+                                </td>
+
+                                <td class="align-middle">@mascota.Raza</td>
+
+                                <td class="align-middle">
+                                    @mascota.FechaNacimiento.ToString("dd/MM/yyyy")
+                                    <br>
+                                    <small class="text-muted">
+                                        <small class="text-muted">
+                                            @(DateTime.Now.Year - mascota.FechaNacimiento.Year) año(s)
+                                        </small>
+                                    </small>
+                                </td>
+
+                                <td class="align-middle">
+                                    <strong>@mascota.Cliente.Usuario.Nombre</strong>
+                                </td>
+
+                                <td class="align-middle">
+                                    <small class="text-muted">
+                                        <i class="fas fa-envelope me-1"></i>@mascota.Cliente.Usuario.Email
+                                        @if (!string.IsNullOrEmpty(mascota.Cliente.Usuario.Telefono))
+                                        {
+                                            <br>
+                                            <i class="fas fa-phone me-1"></i>
+                                            @mascota.Cliente.Usuario.Telefono
+                                        }
+                                    </small>
+                                </td>
+
+                                <td class="align-middle">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a asp-action="Details" asp-route-id="@mascota.Id"
+                                           class="btn btn-outline-info btn-sm"
+                                           data-bs-toggle="tooltip"
+                                           title="Ver historial">
+                                            <i class="fas fa-history"></i>
+                                        </a>
+
+                                        @if (esAdministrador)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@mascota.Id"
+                                               class="btn btn-outline-warning btn-sm"
+                                               data-bs-toggle="tooltip"
+                                               title="Editar mascota">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+
+                                            <a asp-action="Delete" asp-route-id="@mascota.Id"
+                                               class="btn btn-outline-danger btn-sm"
+                                               data-bs-toggle="tooltip"
+                                               title="Eliminar mascota">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+}
+
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var mensajeExito = '@TempData["MensajeExito"]';
+
+            $('#tablaMascotas').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                responsive: true,
+                order: [[0, 'asc']],
+                pageLength: 10,
+            });
+
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            if (mensajeExito)
+            {
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: mensajeExito,
+                    icon: 'success',
+                    confirmButtonColor: '#9d4edd',
+                    timer: 3000,
+                    timerProgressBar: true
+                });             
+            }
+        });
+    </script>
+}

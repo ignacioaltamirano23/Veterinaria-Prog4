@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LogicaDeNegocio.Migrations.DDBB
 {
     /// <inheritdoc />
-    public partial class AutoMigration_Prog4_20251101151549 : Migration
+    public partial class AutoMigration_Prog4_20251101171305 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

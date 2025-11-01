@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LogicaDeNegocio.Migrations.DDBB
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251101181558_AutoMigration_Prog4_20251101151549")]
-    partial class AutoMigration_Prog4_20251101151549
+    [Migration("20251101201322_AutoMigration_Prog4_20251101171305")]
+    partial class AutoMigration_Prog4_20251101171305
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

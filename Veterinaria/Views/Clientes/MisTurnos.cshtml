@@ -1,0 +1,161 @@
+﻿
+
+@using LogicaDeNegocio.Models
+@model IEnumerable<Turno>
+
+@{
+    ViewData["Title"] = "Mis Turnos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold">
+        <i class="fas fa-calendar me-3 icono-gradient"></i>
+        @ViewData["Title"]
+    </h1>
+</div>
+
+<div class="card colorful-table-card shadow-sm">
+    <div class="card-header colorful-form-header text-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Lista de Mis Turnos</h5>
+            <span class="badge bg-light text-dark">@Model.Count() turnos</span>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive p-3">
+            <table class="table table-hover table-striped mb-0" id="tablaTurnos">
+                <thead class="table-light">
+                    <tr>
+                        <th><i class="fas fa-calendar-day me-1"></i>Fecha y Hora</th>
+                        <th><i class="fas fa-dog me-1"></i>Mascota</th>
+                        <th><i class="fas fa-user-md me-1"></i>Veterinario</th>
+                        <th><i class="fas fa-info-circle me-1"></i>Estado</th>
+                        <th class="text-center"><i class="fas fa-cogs me-1"></i>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var turno in Model)
+                    {
+                        <tr>
+                            <td class="align-middle">@turno.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="align-middle">
+                                <strong>@turno.Mascota.Nombre</strong>
+                                <br>
+                                <small class="text-muted">@turno.Mascota.Especie - @turno.Mascota.Raza</small>
+                            </td>
+                            <td class="align-middle">@turno.Veterinario.Usuario.Nombre</td>
+                            <td class="align-middle">
+                                @{
+                                    var badgeClass = turno.EstadoTurno switch
+                                    {
+                                        EstadoTurno.Pendiente => "bg-warning",
+                                        EstadoTurno.Confirmado => "bg-success",
+                                        EstadoTurno.Cancelado => "bg-danger",
+                                        _ => "bg-secondary"
+                                    };
+                                }
+                                <span class="badge @badgeClass">@turno.EstadoTurno</span>
+                            </td>
+                            <td class="align-middle">
+                                <div class="d-flex justify-content-center">
+                                    @if (turno.EstadoTurno == EstadoTurno.Pendiente || turno.EstadoTurno == EstadoTurno.Confirmado)
+                                    {
+                                        <form asp-action="CancelarTurno" method="post" class="d-inline cancelar-form">
+                                            <input type="hidden" name="id" value="@turno.Id" />
+                                            <button type="button" class="btn btn-outline-danger btn-sm cancelar-btn"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Cancelar turno"
+                                                    data-turno-id="@turno.Id"
+                                                    data-mascota="@turno.Mascota.Nombre"
+                                                    data-fecha="@turno.FechaHora.ToString("dd/MM/yyyy HH:mm")">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center d-flex justify-content-center align-items-center">
+            <div class="colorful-empty-card border-0">
+                <div class="colorful-icon-background m-auto mb-3">
+                    <i class="fas fa-calendar-times text-white fa-2x"></i>
+                </div>
+                <h4 class="text-muted mb-3">No tenés turnos programados</h4>
+                <p class="text-muted mb-4">Contactá con la veterinaria para solicitar un turno.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var mensajeExito = '@TempData["MensajeExito"]';
+            var mensajeError = '@TempData["MensajeError"]';
+
+            $('#tablaTurnos').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                responsive: true,
+                order: [[0, 'desc']],
+                pageLength: 10,
+            });
+
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            $('.cancelar-btn').on('click', function() {
+                const mascota = $(this).data('mascota');
+                const fecha = $(this).data('fecha');
+
+                Swal.fire({
+                    title: '¿Cancelar turno?',
+                    html: `¿Estás seguro de cancelar el turno de <strong>${mascota}</strong> para el <strong>${fecha}</strong>?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-times me-2"></i>Sí, cancelar',
+                    cancelButtonText: '<i class="fas fa-arrow-left me-2"></i>No, mantener',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $(this).closest('form').submit();
+                    }
+                });
+            });
+
+            if (mensajeExito)
+            {
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: mensajeExito,
+                        icon: 'success',
+                        confirmButtonColor: '#9d4edd'
+                    });
+            }
+
+            if (mensajeError)
+            {
+                    Swal.fire({
+                        title: 'Error',
+                        text: mensajeError,
+                        icon: 'error',
+                        confirmButtonColor: '#9d4edd'
+                    });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,114 @@
+﻿
+
+@using LogicaDeNegocio.Models
+@model IEnumerable<Mascota>
+
+@{
+    ViewData["Title"] = "Mis Mascotas";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold">
+        <i class="fas fa-paw me-3 icono-gradient"></i>
+        @ViewData["Title"]
+    </h1>
+</div>
+
+<div class="card colorful-table-card shadow-sm">
+    <div class="card-header colorful-form-header text-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Lista de Mis Mascotas</h5>
+            <span class="badge bg-light text-dark">@Model.Count() mascotas</span>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive p-3">
+            <table class="table table-hover table-striped mb-0" id="tablaMascotas">
+                <thead class="table-light">
+                    <tr>
+                        <th><i class="fas fa-dog me-1"></i>Nombre</th>
+                        <th><i class="fas fa-dna me-1"></i>Especie</th>
+                        <th><i class="fas fa-paw me-1"></i>Raza</th>
+                        <th><i class="fas fa-birthday-cake me-1"></i>Fecha de Nacimiento</th>
+                        <th><i class="fas fa-calendar me-1"></i>Turnos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var mascota in Model)
+                    {
+                        <tr>
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-paw text-white"></i>
+                                    </div>
+                                    <div>
+                                        <strong>@mascota.Nombre</strong>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="align-middle">@mascota.Especie</td>
+                            <td class="align-middle">@mascota.Raza</td>
+                            <td class="align-middle">@mascota.FechaNacimiento.ToString("dd/MM/yyyy")</td>
+                            <td class="align-middle">
+                                <span class="badge bg-primary">@(mascota.Turnos?.Count ?? 0) turnos</span>
+                            </td>                           
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card-body text-center d-flex justify-content-center align-items-center">
+            <div class="colorful-empty-card border-0">
+                <div class="colorful-icon-background m-auto mb-3">
+                    <i class="fas fa-paw text-white fa-2x"></i>
+                </div>
+                <h4 class="text-muted mb-3">No tenés mascotas registradas</h4>
+                <p class="text-muted mb-4">Contactá con un administrador para registrar tus mascotas.</p>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var mensajeExito = '@TempData["MensajeExito"]';
+            var mensajeError = '@TempData["MensajeError"]';
+
+            $('#tablaMascotas').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                responsive: true,
+                order: [[0, 'asc']],
+                pageLength: 10,
+            });
+
+            if (mensajeExito)
+            {            
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: mensajeExito,
+                        icon: 'success',
+                        confirmButtonColor: '#9d4edd'
+                    });
+            }
+
+            if (mensajeError)
+            {
+                    Swal.fire({
+                        title: 'Error',
+                        text: mensajeError,
+                        icon: 'error',
+                        confirmButtonColor: '#9d4edd'
+                    });
+            }
+        });
+    </script>
+}

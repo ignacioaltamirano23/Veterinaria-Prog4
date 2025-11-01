@@ -1,61 +1,119 @@
 ﻿
-
 @model LogicaDeNegocio.Models.Turno
 
 @{
-    ViewData["Title"] = "Crear Turno";
+    ViewData["Title"] = "Programar Turno";
+    var esVeterinario = User.IsInRole("Veterinario");
+    var esAdministrador = User.IsInRole("Administrador");
 }
 
-<h1 class="fw-bold text-dark mb-4">Crear Turno</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold">
+        <i class="fas fa-plus-circle me-3 icono-gradient"></i>
+        @(esVeterinario ? "Agendar Nuevo Turno" : "Programar Turno")
+    </h1>
 
-<div class="row justify-content-md-start justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card border-0 shadow-sm colorful-form-card">
-            <div class="card-header colorful-form-header">
-                <h5 class="card-title mb-0 text-white">
-                    <i class="fas fa-calendar-plus me-2"></i>Nuevo Turno
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card colorful-form-card shadow-sm">
+            <div class="card-header colorful-form-header text-white py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-plus me-2"></i>
+                    @(esVeterinario ? "Agendar en Mi Calendario" : "Nuevo Turno")
                 </h5>
             </div>
             <div class="card-body p-4">
-                <form asp-action="Create" method="post">
+                <form asp-action="Create">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <div class="form-group mb-4">
-                        <label asp-for="FechaHora" class="form-label fw-semibold"></label>
-                        <input type="datetime-local" asp-for="FechaHora" class="form-control" />
-                        <span asp-validation-for="FechaHora" class="text-danger small"></span>
+                    <div class="row">
+                        <div class="@(esVeterinario ? "col-12" : "col-md-6")">
+                            <div class="form-floating mb-3">
+                                <input asp-for="FechaHora" class="form-control" type="datetime-local" />
+                                <label asp-for="FechaHora" class="form-label"></label>
+                                <span asp-validation-for="FechaHora" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        @if (!esVeterinario)
+                        {
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select asp-for="VeterinarioId" asp-items="ViewBag.VeterinarioId" class="form-control">
+                                        <option value="">Seleccione veterinario</option>
+                                    </select>
+                                    <label asp-for="VeterinarioId" class="form-label"></label>
+                                    <span asp-validation-for="VeterinarioId" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" asp-for="VeterinarioId" />
+                        }
                     </div>
 
-                    <div class="form-group mb-4">
-                        <label asp-for="EstadoTurno" class="form-label fw-semibold"></label>
-                        <select asp-for="EstadoTurno" class="form-control" asp-items="ViewBag.Estados"></select>
-                        <span asp-validation-for="EstadoTurno" class="text-danger small"></span>
+                    <div class="mb-4">
+                        <div class="form-floating">
+                            <select asp-for="MascotaId" asp-items="ViewBag.MascotaId" class="form-control">
+                                <option value="">Seleccione mascota</option>
+                            </select>
+                            <label asp-for="MascotaId" class="form-label"></label>
+                            <span asp-validation-for="MascotaId" class="text-danger small"></span>
+                        </div>
                     </div>
 
-                    <div class="form-group mb-4">
-                        <label asp-for="MascotaId" class="form-label fw-semibold"></label>
-                        <select asp-for="MascotaId" class="form-control" asp-items="ViewBag.MascotaId">
-                            <option value="" class="text-center">--- Seleccione una mascota ---</option>
-                        </select>
-                        <span asp-validation-for="MascotaId" class="text-danger small"></span>
-                    </div>
+                    <input type="hidden" asp-for="EstadoTurno" />
 
-                    <div class="form-group mb-3">
-                        <button type="submit" class="btn btn-primary colorful-btn-hover w-100 py-2">
-                            <i class="fas fa-save me-2"></i>Crear Turno
+                    <div class="d-flex justify-content-end gap-3">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="btnSubmit">
+                            <i class="fas fa-save me-2"></i>
+                            @(esVeterinario ? "Agendar Turno" : "Programar Turno")
                         </button>
                     </div>
                 </form>
-            </div>
-            <div class="card-footer colorful-form-footer">
-                <a asp-action="Index" class="btn btn-secondary colorful-btn-hover">
-                    <i class="fas fa-arrow-left me-2"></i>Volver a la lista
-                </a>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            var mensajeExito = '@TempData["MensajeExito"]';
+            var mensajeError = '@ViewBag.MensajeError';
+
+            if (mensajeExito) {
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: mensajeExito,
+                    icon: 'success',
+                    confirmButtonColor: '#9d4edd',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+
+            if (mensajeError) {
+                Swal.fire({
+                    title: 'Error',
+                    text: mensajeError,
+                    icon: 'error',
+                    confirmButtonColor: '#9d4edd'
+                });
+            }
+        });
+    </script>
+
 }

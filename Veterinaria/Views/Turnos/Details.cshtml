@@ -1,62 +1,224 @@
-﻿
-
-@using LogicaDeNegocio.Models
+﻿@using LogicaDeNegocio.Models
 @model LogicaDeNegocio.Models.Turno
 
 @{
-    ViewData["Title"] = "Detalles de Turno";
+    ViewData["Title"] = "Detalles del Turno";
+    var esVeterinario = User.IsInRole("Veterinario");
+    var esAdministrador = User.IsInRole("Administrador");
+    var edad = DateTime.Now.Year - Model?.Mascota?.FechaNacimiento.Year;
 }
 
-<h1 class="fw-bold text-dark mb-4">Detalles</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold">
+        <i class="fas fa-calendar-check me-3 icono-gradient"></i>
+        @ViewData["Title"]
+    </h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver a Turnos
+    </a>
+</div>
 
-<div class="row justify-content-md-start justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card border-0 shadow-sm colorful-form-card">
-            <div class="card-header colorful-form-header">
-                <h5 class="card-title mb-0 text-white">
-                    <i class="fas fa-eye me-2"></i>Información del turno
-                </h5>
+@if (esVeterinario)
+{
+    <div class="row">
+        <!-- Información del Turno -->
+        <div class="col-lg-6">
+            <div class="card colorful-form-card shadow-sm mb-4">
+                <div class="card-header colorful-form-header text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Turno</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="fw-bold text-primary">Fecha y Hora</label>
+                        <p class="h4 text-dark mb-1">
+                            @Model?.FechaHora.ToString("dd/MM/yyyy")
+                        </p>
+                        <p class="h5 text-muted">
+                            @Model?.FechaHora.ToString("HH:mm") hs
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="fw-bold text-primary">Estado</label>
+                        <div>
+                            @{
+                                var badgeClass = Model?.EstadoTurno switch
+                                {
+                                    EstadoTurno.Confirmado => "bg-success",
+                                    EstadoTurno.Pendiente => "bg-warning text-dark",
+                                    EstadoTurno.Cancelado => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClass fs-6 mt-2">@Model?.EstadoTurno</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body p-4">
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-semibold mb-2 align-self-center">
-                        @Html.DisplayNameFor(model => model.FechaHora)
-                    </div>
-                    <div class="col-sm-8 mb-3">
-                        <div class="form-control bg-light border-0">@Html.DisplayFor(model => model.FechaHora)</div>
-                    </div>
-                </div>
+        </div>
 
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-semibold mb-2">
-                        @Html.DisplayNameFor(model => model.EstadoTurno)
-                    </div>
-                    <div class="col-sm-8 mb-3">
-                        <span class="badge p-2 colorful-badge @(Model.EstadoTurno == EstadoTurno.Confirmado ? "colorful-badge-success" : Model.EstadoTurno == EstadoTurno.Pendiente ? "colorful-badge-warning" : "colorful-badge-danger")">
-                            @Model.EstadoTurno
-                        </span>
-                    </div>
+        <!-- Información de la Mascota -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm mb-4 h-100">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-paw me-2"></i>Información de la Mascota</h5>
                 </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="colorful-icon-background me-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-paw text-white fa-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0">@Model?.Mascota?.Nombre</h4>
+                            <span class="badge bg-info">@Model?.Mascota?.Especie</span>
+                        </div>
+                    </div>
 
-                <div class="row">
-                    <div class="col-sm-4 fw-semibold mb-2 align-self-center">
-                        @Html.DisplayNameFor(model => model.Mascota)
+                    <div class="mb-3">
+                        <label class="fw-bold text-muted small">Raza</label>
+                        <p class="mb-0 fs-6">@Model?.Mascota?.Raza</p>
                     </div>
-                    <div class="col-sm-8">
-                        <div class="form-control bg-light border-0">@Html.DisplayFor(model => model.Mascota.Especie)</div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold text-muted small">Fecha de nacimiento</label>
+                        <p class="mb-0">
+                            @Model?.Mascota?.FechaNacimiento.ToString("dd/MM/yyyy")
+                            <br>
+                            <small class="text-muted">                                
+                                @edad año(s)
+                            </small>
+                        </p>
                     </div>
-                </div>
-            </div>
-            <div class="card-footer colorful-form-footer">
-                <div class="d-flex gap-2">
-                    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary colorful-btn-hover">
-                        <i class="fas fa-edit me-2"></i>Editar
-                    </a>
-                    <a asp-action="Index" class="btn btn-secondary colorful-btn-hover">
-                        <i class="fas fa-arrow-left me-2"></i>Volver a la lista
-                    </a>
+
+                    <div class="pt-3 border-top">
+                        <label class="fw-bold text-muted small">Dueño</label>
+                        <div class="d-flex align-items-center mt-2">
+                            <div class="colorful-icon-background me-3" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-semibold">@Model?.Mascota?.Cliente?.Usuario.Nombre</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-envelope me-1"></i>@Model?.Mascota?.Cliente?.Usuario.Email
+                                    @if (!string.IsNullOrEmpty(Model?.Mascota?.Cliente?.Usuario.Telefono))
+                                    {
+                                        <br>
+                                        <i class="fas fa-phone me-1"></i>
+
+                                        @Model.Mascota.Cliente.Usuario.Telefono
+                                    }
+                                </small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+}
+else
+{    
+    <div class="row">
+        <!-- Información del Turno -->
+        <div class="col-lg-4">
+            <div class="card colorful-form-card shadow-sm mb-4">
+                <div class="card-header colorful-form-header text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información del Turno</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="fw-bold text-primary">Fecha y Hora</label>
+                        <p class="h4 text-dark mb-1">
+                            @Model?.FechaHora.ToString("dd/MM/yyyy")
+                        </p>
+                        <p class="h5 text-muted">
+                            @Model?.FechaHora.ToString("HH:mm") hs
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="fw-bold text-primary">Estado</label>
+                        <div>
+                            @{
+                                var badgeClassAdmin = Model?.EstadoTurno switch
+                                {
+                                    EstadoTurno.Confirmado => "bg-success",
+                                    EstadoTurno.Pendiente => "bg-warning text-dark",
+                                    EstadoTurno.Cancelado => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClassAdmin fs-6 mt-2">@Model?.EstadoTurno</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Veterinario -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-user-md me-2"></i>Veterinario Asignado</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="colorful-icon-background mx-auto mb-3" style="width: 70px; height: 70px;">
+                        <i class="fas fa-user-md text-white fa-2x"></i>
+                    </div>
+                    <h4 class="mb-2">@Model?.Veterinario?.Usuario.Nombre</h4>
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-envelope me-1"></i>@Model?.Veterinario?.Usuario.Email
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model?.Veterinario?.Usuario.Telefono))
+                    {
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-phone me-1"></i>@Model.Veterinario.Usuario.Telefono
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de la Mascota -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-paw me-2"></i>Información de la Mascota</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="colorful-icon-background mx-auto mb-2" style="width: 60px; height: 60px;">
+                            <i class="fas fa-paw text-white fa-lg"></i>
+                        </div>
+                        <h4 class="mb-1">@Model?.Mascota?.Nombre</h4>
+                        <span class="badge bg-info">@Model?.Mascota?.Especie</span>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="fw-bold text-muted">Raza</label>
+                        <p class="mb-0">@Model?.Mascota?.Raza</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold text-muted">Edad</label>
+                        <p class="mb-0">                            
+                            @edad año(s)
+                            <br>
+                            <small class="text-muted">
+                                Nac: @Model?.Mascota?.FechaNacimiento.ToString("dd/MM/yyyy")
+                            </small>
+                        </p>
+                    </div>
+
+                    <div class="pt-2 border-top">
+                        <label class="fw-bold text-muted">Dueño</label>
+                        <p class="mb-1 small">@Model?.Mascota?.Cliente?.Usuario.Nombre</p>
+                        <small class="text-muted">
+                            <i class="fas fa-envelope me-1"></i>@Model?.Mascota?.Cliente?.Usuario.Email
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

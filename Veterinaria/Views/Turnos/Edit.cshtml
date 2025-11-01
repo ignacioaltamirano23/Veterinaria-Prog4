@@ -4,57 +4,121 @@
 
 @{
     ViewData["Title"] = "Editar Turno";
+    var esVeterinario = User.IsInRole("Veterinario");
+    var esAdministrador = User.IsInRole("Administrador");
 }
-<h1 class="fw-bold text-dark mb-4">Editar</h1>
 
-<div class="row justify-content-md-start justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card border-0 shadow-sm colorful-form-card">
-            <div class="card-header colorful-form-header">
-                <h5 class="card-title mb-0 text-white">
-                    <i class="fas fa-edit me-2"></i>Editar Turno
-                </h5>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold">
+        <i class="fas fa-edit me-3 icono-gradient"></i>
+        @ViewData["Title"]
+    </h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card colorful-form-card shadow-sm">
+            <div class="card-header colorful-form-header text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Modificar Turno</h5>
             </div>
             <div class="card-body p-4">
-                <form asp-action="Edit" method="post">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <form asp-action="Edit">
                     <input type="hidden" asp-for="Id" />
 
-                    <div class="form-group mb-4">
-                        <label asp-for="FechaHora" class="form-label fw-semibold"></label>
-                        <input type="datetime-local" asp-for="FechaHora" class="form-control" />
-                        <span asp-validation-for="FechaHora" class="text-danger small"></span>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input asp-for="FechaHora" class="form-control" type="datetime-local" />
+                                <label asp-for="FechaHora" class="form-label"></label>
+                                <span asp-validation-for="FechaHora" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <select asp-for="EstadoTurno" asp-items="ViewBag.EstadosTurno" class="form-control">
+                                    <option value="">Seleccione estado</option>
+                                </select>
+                                <label asp-for="EstadoTurno" class="form-label"></label>
+                                <span asp-validation-for="EstadoTurno" class="text-danger small"></span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group mb-4">
-                        <label asp-for="EstadoTurno" class="form-label fw-semibold"></label>
-                        <select asp-for="EstadoTurno" class="form-control" asp-items="ViewBag.Estados"></select>
-                        <span asp-validation-for="EstadoTurno" class="text-danger small"></span>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <select asp-for="MascotaId" asp-items="ViewBag.MascotaId" class="form-control">
+                                    <option value="">Seleccione mascota</option>
+                                </select>
+                                <label asp-for="MascotaId" class="form-label"></label>
+                                <span asp-validation-for="MascotaId" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        @if (esAdministrador)
+                        {
+                            <div class="col-md-6">
+                                <div class="form-floating mb-4">
+                                    <select asp-for="VeterinarioId" asp-items="ViewBag.VeterinarioId" class="form-control">
+                                        <option value="">Seleccione veterinario</option>
+                                    </select>
+                                    <label asp-for="VeterinarioId" class="form-label"></label>
+                                    <span asp-validation-for="VeterinarioId" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        }
+
+                        <input type="hidden" asp-for="VeterinarioId" />
+                        
                     </div>
 
-                    <div class="form-group mb-4">
-                        <label asp-for="MascotaId" class="form-label fw-semibold"></label>
-                        <select asp-for="MascotaId" class="form-control" asp-items="ViewBag.MascotaId">
-                            <option value="" class="text-center">--- Seleccione una mascota ---</option>
-                        </select>
-                        <span asp-validation-for="MascotaId" class="text-danger small"></span>
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <button type="submit" class="btn btn-primary colorful-btn-hover w-100 py-2">
-                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                    <div class="d-flex justify-content-end gap-3">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-2"></i>Actualizar Turno
                         </button>
                     </div>
                 </form>
             </div>
-            <div class="card-footer colorful-form-footer">
-                <a asp-action="Index" class="btn btn-secondary colorful-btn-hover">
-                    <i class="fas fa-arrow-left me-2"></i>Volver a la lista
-                </a>
-            </div>
         </div>
     </div>
 </div>
+
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function () {
+            var mensajeExito = '@TempData["MensajeExito"]';
+            var mensajeError = '@TempData["MensajeError"]';
+
+            if (mensajeExito) {
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: mensajeExito,
+                    icon: 'success',
+                    confirmButtonColor: '#9d4edd',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+
+            if (mensajeError) {
+                Swal.fire({
+                    title: 'Error',
+                    text: mensajeError,
+                    icon: 'error',
+                    confirmButtonColor: '#9d4edd'
+                });
+            }
+        });
+    </script>
 }

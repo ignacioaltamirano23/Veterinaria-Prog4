@@ -1,0 +1,190 @@
+﻿
+@using LogicaDeNegocio.Models
+@using System.Security.Claims
+@model IEnumerable<Usuario>
+
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+
+@if(!Model.Any())
+{
+    <div class="card colorful-table-card shadow-sm mt-4">
+        <div class="card-body text-center d-flex justify-content-center align-items-center py-5">
+            <div class="colorful-empty-card border-0">
+                <div class="colorful-icon-background m-auto mb-3">
+                    <i class="fas fa-users text-white fa-2x"></i>
+                </div>
+                <h4 class="text-muted mb-3">No hay usuarios registrados</h4>
+                <p class="text-muted mb-4">Los usuarios se registran automáticamente al iniciar sesión con Google.</p>
+            </div>
+        </div>
+    </div>
+} else
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5 fw-bold">
+            <i class="fas fa-users me-3 icono-gradient"></i>
+            @ViewData["Title"]
+        </h1>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
+        </a>
+    </div>
+
+    <div class="card colorful-table-card shadow-sm">
+        <div class="card-header colorful-form-header text-white py-3">
+            <div class="d-flex justify-content-between align-items-center ">
+                <h5 class="mb-0"><i class="fas fa-list me-2"></i>Lista de Usuarios</h5>
+                <span class="badge bg-light text-dark">@Model.Count() usuarios</span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive p-3">
+                <table class="table table-hover table-striped mb-0" id="tablaUsuarios">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-envelope me-1"></i>Email</th>
+                            <th><i class="fas fa-user me-1"></i>Nombre</th>
+                            <th><i class="fas fa-phone me-1"></i>Teléfono</th>
+                            <th><i class="fas fa-map-marker-alt me-1"></i>Dirección</th>
+                            <th><i class="fas fa-user-tag me-1"></i>Rol</th>
+                            <th class="text-center"><i class="fas fa-cogs me-1"></i>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var usuario in Model)
+                        {
+                            <tr>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <div class="ms-0 rounded-circle d-flex me-3 colorful-icon-background" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                        <div>
+                                            <strong>@usuario.Email</strong>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="align-middle">@usuario.Nombre</td>
+
+                                <td class="align-middle">
+                                    @if (string.IsNullOrEmpty(usuario.Telefono) || usuario.Telefono == "N/A")
+                                    {
+                                        <span class="badge bg-secondary">No asignado</span>
+                                    }
+                                    else
+                                    {
+                                        @usuario.Telefono
+                                    }
+                                </td>
+
+                                <td class="align-middle">
+                                    @if (string.IsNullOrEmpty(usuario.Direccion) || usuario.Direccion == "N/A")
+                                    {
+                                        <span class="badge bg-secondary">No asignada</span>
+                                    }
+                                    else
+                                    {
+                                        <small>@usuario.Direccion</small>
+                                    }
+                                </td>
+
+                                <td class="align-middle">
+                                    @{
+                                        var badgeClass = usuario.Rol.Nombre switch
+                                        {
+                                            "Administrador" => "bg-danger",
+                                            "Veterinario" => "bg-warning",
+                                            "Cliente" => "bg-info",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@usuario.Rol.Nombre</span>
+                                </td>
+
+                                <td class="align-middle">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a asp-action="Details" asp-route-id="@usuario.Id"
+                                           class="btn btn-outline-info btn-sm"
+                                           data-bs-toggle="tooltip"
+                                           title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        <a asp-action="Edit" asp-route-id="@usuario.Id"
+                                           class="btn btn-outline-warning btn-sm"
+                                           data-bs-toggle="tooltip"
+                                           title="Editar usuario">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+
+                                        @{
+                                            var idUsuarioActual = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                                        }
+
+                                        @if (usuario.Id != idUsuarioActual)
+                                        {
+                                            <a asp-action="AsignarRol" asp-route-id="@usuario.Id"
+                                               class="btn btn-outline-primary btn-sm"
+                                               data-bs-toggle="tooltip"
+                                               title="Cambiar rol">
+                                                <i class="fas fa-user-tag"></i>
+                                            </a>
+
+                                            <a asp-action="Delete" asp-route-id="@usuario.Id"
+                                               class="btn btn-outline-danger btn-sm"
+                                               data-bs-toggle="tooltip"
+                                               title="Eliminar usuario">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var mensajeExito = '@TempData["MensajeExito"]';
+
+            $('#tablaUsuarios').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                responsive: true,
+                order: [[0, 'asc']],
+                pageLength: 10,
+            });
+
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            if (mensajeExito)
+            {
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: mensajeExito,
+                    icon: 'success',
+                    confirmButtonColor: '#9d4edd',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }           
+        });
+    </script>
+}

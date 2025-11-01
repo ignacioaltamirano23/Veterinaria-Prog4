@@ -1,41 +1,80 @@
 ﻿@using System.Security.Claims
-
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
+    var picture = User.FindFirst("picture")?.Value;
+    var name = User.FindFirst(ClaimTypes.Name)?.Value;
+    var email = User.FindFirst(ClaimTypes.Email)?.Value;
 }
 
-@if (!User.Identity.IsAuthenticated)
-{
-    <div class="text-center">
-        <a asp-controller="Login" asp-action="Login" class="btn btn-primary btn-md py-3 mb-3">
-            <i class="fab fa-google me-2"></i>
-            Iniciar Sesión con Google
-        </a>
-    </div>
-}
-else
-{
-    <div class="text-center">
-        @{
-            var picture = User.FindFirst("picture")?.Value;
-            var name = User.FindFirst(ClaimTypes.Name)?.Value;
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-        }
+<div class="home-container fade-in">
 
-        <div class="mb-3">
-            @if (!string.IsNullOrEmpty(picture))
-            {
-                <img src="@picture" alt="Profile" class="rounded-circle" width="80" height="80">
-            }
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <div class="text-center my-5">
+            <h1 class="fw-bold display-5 mb-4">
+                Bienvenido a <span class="brand-gradient">Vet</span>
+            </h1>
+            <p class="text-muted mb-4 fs-5">
+                Cuidamos de tus mascotas con dedicación. Reservá y gestioná tus turnos de forma simple y rápida.
+            </p>
+
+            <a asp-controller="Login" asp-action="Login"
+               class="btn btn-primary btn-lg px-5 py-3 colorful-btn-hover">
+                <i class="fab fa-google me-2"></i> Iniciar sesión con Google
+            </a>
         </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-center align-items-center my-5">
+            <div class="profile-card text-center p-5 shadow-lg rounded-4" style="max-width: 420px; width: 100%;">
 
-        <h6 class="fw-bold">Bienvenido, @name!</h6>
-        <p class="text-muted small mb-3">@email</p>
+                @if (!string.IsNullOrEmpty(picture))
+                {
+                    <img src="@picture" alt="Perfil"
+                         class="rounded-circle shadow-sm mb-3 border border-3 border-light"
+                         width="110" height="110">
+                }
 
-        <a asp-controller="Login" asp-action="Logout" class="btn btn-outline-danger btn-lg py-2">
-            <i class="fas fa-sign-out-alt me-2"></i>
-            Cerrar sesión
-        </a>
+                <h3 class="fw-bold mb-1">Hola, @name 👋</h3>
+                <p class="text-muted mb-4">@email</p>
 
-    </div>
-}
+                <div class="d-grid gap-3">
+                    @if (User.IsInRole("Cliente"))
+                    {
+                        <a class="btn btn-outline-primary py-2" asp-controller="Clientes" asp-action="MisMascotas">
+                            <i class="fas fa-paw me-2"></i> Mis Mascotas
+                        </a>
+                        <a class="btn btn-outline-primary py-2" asp-controller="Clientes" asp-action="MisTurnos">
+                            <i class="fas fa-calendar me-2"></i> Mis Turnos
+                        </a>
+                    }
+
+                    @if (User.IsInRole("Veterinario"))
+                    {
+                        <a class="btn btn-outline-success py-2" asp-controller="Turnos" asp-action="Index">
+                            <i class="fas fa-calendar-check me-2"></i> Mi Agenda
+                        </a>
+                        <a class="btn btn-outline-success py-2" asp-controller="Mascotas" asp-action="Index">
+                            <i class="fas fa-paw me-2"></i> Mascotas
+                        </a>
+                    }
+
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <a class="btn btn-outline-dark py-2" asp-controller="Usuarios" asp-action="Index">
+                            <i class="fas fa-users me-2"></i> Gestión de Usuarios
+                        </a>
+                        <a class="btn btn-outline-dark py-2" asp-controller="Mascotas" asp-action="Index">
+                            <i class="fas fa-paw me-2"></i> Gestión de Mascotas
+                        </a>
+                        <a class="btn btn-outline-dark py-2" asp-controller="Turnos" asp-action="Index">
+                            <i class="fas fa-calendar-alt me-2"></i> Gestión de Turnos
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+</div>

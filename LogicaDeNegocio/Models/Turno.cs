@@ -19,13 +19,19 @@ namespace LogicaDeNegocio.Models
         public DateTime FechaHora { get; set; }
 
         [Display(Name = "Estado")]
-        public EstadoTurno EstadoTurno { get; set; } = EstadoTurno.Pendiente;
+        public EstadoTurno EstadoTurno { get; set; } = EstadoTurno.Confirmado;
 
-        [Required(ErrorMessage = "Debe seleccionar una mascota")]
+        [Required(ErrorMessage = "La mascota es obligatoria")]
         [Display(Name = "Mascota")]        
-        public int? MascotaId { get; set; }
+        public int MascotaId { get; set; }
 
         [ForeignKey("MascotaId")]
         public Mascota? Mascota { get; set; }
+
+        [Display(Name = "Veterinario")]
+        public string? VeterinarioId { get; set; }
+
+        [ForeignKey("VeterinarioId")]
+        public Veterinario? Veterinario { get; set; }
     }
 }

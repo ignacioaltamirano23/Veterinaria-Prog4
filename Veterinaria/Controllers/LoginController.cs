@@ -23,6 +23,11 @@ namespace Veterinaria.Controllers
             var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.
                 AuthenticationScheme);
 
+            if (!result.Succeeded)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+
             return RedirectToAction("Index", "Home", new { area = "" });
         }
         public async Task<IActionResult> Logout()

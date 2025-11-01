@@ -1,0 +1,111 @@
+﻿@using LogicaDeNegocio.Models
+@model Usuario
+
+@{
+    ViewData["Title"] = "Eliminar Usuario";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold text-danger">
+        <i class="fas fa-exclamation-triangle me-3"></i>
+        @ViewData["Title"]
+    </h1>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver a la lista
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-trash me-2"></i>Confirmar Eliminación</h5>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title text-danger mb-3">
+                            <i class="fas fa-user me-2"></i>Información del Usuario
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Nombre:</strong> @Model.Nombre</p>
+                                <p><strong>Email:</strong> @Model.Email</p>
+                                <p>
+                                    <strong>Rol:</strong>
+                                    <span class="badge @(Model.Rol.Nombre == "Administrador" ? "bg-danger" : Model.Rol.Nombre == "Veterinario" ? "bg-warning" : "bg-info")">
+                                        @Model.Rol.Nombre
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <strong>Teléfono:</strong>
+                                    @if (string.IsNullOrEmpty(Model.Telefono) || Model.Telefono == "N/A")
+                                    {
+                                        <span class="text-muted">No asignado</span>
+                                    }
+                                    else
+                                    {
+                                        @Model.Telefono
+                                    }
+                                </p>
+                                <p>
+                                    <strong>Dirección:</strong>
+                                    @if (string.IsNullOrEmpty(Model.Direccion) || Model.Direccion == "N/A")
+                                    {
+                                        <span class="text-muted">No asignada</span>
+                                    }
+                                    else
+                                    {
+                                        @Model.Direccion
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post" id="deleteForm">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="button" class="btn btn-danger" id="btnEliminar">
+                            <i class="fas fa-trash me-2"></i>Eliminar Permanentemente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#btnEliminar').on('click', function(e) {
+                 e.preventDefault();
+
+                Swal.fire({
+                    title: '¿Eliminar usuario?',
+                    html: `Estás a punto de eliminar a <strong>@Model.Nombre</strong><br>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-trash me-2"></i>Sí, eliminar',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#deleteForm').submit();
+                    }
+                });
+            });
+        });
+    </script>
+}

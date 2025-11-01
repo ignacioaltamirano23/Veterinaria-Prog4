@@ -1,0 +1,130 @@
+﻿
+
+@using LogicaDeNegocio.Models
+@model Usuario
+
+@{
+    ViewData["Title"] = "Asignar Rol";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-5 fw-bold">
+        <i class="fas fa-user-tag me-3 icono-gradient"></i>
+        @ViewData["Title"]
+    </h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver a la lista
+    </a>
+</div>
+
+<div class="row align-items-start">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header colorful-form-header text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-user-cog me-2"></i>Cambiar Rol de Usuario</h5>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center p-3 bg-light rounded">                            
+                            <div>
+                                <h5 class="mb-1">@Model.Nombre</h5>
+                                <p class="mb-1 text-muted">@Model.Email</p>
+                                <span class="badge @(Model.Rol.Nombre == "Administrador" ? "bg-danger" : Model.Rol.Nombre == "Veterinario" ? "bg-warning" : "bg-info")">
+                                    Rol actual: @Model.Rol.Nombre
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="AsignarRol" method="post" id="rolForm">
+                    <input type="hidden" name="id" value="@Model.Id" />
+
+                    <div class="mb-4">
+                        <label for="nuevoRol" class="form-label fw-bold fs-5">Seleccionar Nuevo Rol:</label>
+                        <select name="nuevoRol" class="form-select form-select-lg" id="rolSelect">
+                            <option value="">-- Seleccionar Rol --</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Veterinario">Veterinario</option>
+                            <option value="Cliente">Cliente</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-user-tag me-2"></i>Asignar Rol
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const rolActual = '@Model.Rol.Nombre';
+
+            $('#rolForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const nuevoRol = $('#rolSelect').val();
+
+                if (!nuevoRol) {
+                    Swal.fire({
+                        title: 'Selecciona un rol',
+                        text: 'Debes seleccionar un rol para continuar',
+                        icon: 'warning',
+                        confirmButtonColor: '#9d4edd'
+                    });
+                    return;
+                }
+
+                if (nuevoRol === rolActual) {
+                    Swal.fire({
+                        title: 'Mismo rol',
+                        text: 'El usuario ya tiene asignado este rol',
+                        icon: 'info',
+                        confirmButtonColor: '#9d4edd'
+                    });
+                    return;
+                }
+
+                const nombresRoles = {
+                    'Administrador': '<span class="badge bg-danger">Administrador</span>',
+                    'Veterinario': '<span class="badge bg-warning">Veterinario</span>',
+                    'Cliente': '<span class="badge bg-info">Cliente</span>'
+                };
+
+                Swal.fire({
+                    title: '¿Confirmar cambio de rol?',
+                    html: `<div class="text-center">
+                              <div>
+                                  <strong >Cambiar de:</strong><br>
+                                  ${nombresRoles[rolActual]}
+                                  <i class="fas fa-arrow-right mt-3 mx-3 text-muted"></i>
+                                  ${nombresRoles[nuevoRol]}
+                              </div>                             
+                           </div>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#9d4edd',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-user-tag me-2"></i>Sí, cambiar rol',
+                    cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#rolForm').off('submit').submit();
+                    }
+                });
+            });           
+        });
+    </script>
+}

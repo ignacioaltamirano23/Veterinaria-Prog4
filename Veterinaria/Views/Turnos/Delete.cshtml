@@ -1,6 +1,4 @@
-﻿
-
-@using LogicaDeNegocio.Models
+﻿@using LogicaDeNegocio.Models
 @model LogicaDeNegocio.Models.Turno
 
 @{
@@ -87,7 +85,7 @@
                     buttonsStyling: false
                 }).then(function(result) {
                     if (result.isConfirmed) {
-                        $(form).unbind('submit').submit();
+                        $(form).off('submit').submit();
                     }
                 });
             });

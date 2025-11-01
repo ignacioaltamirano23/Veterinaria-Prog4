@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace LogicaDeNegocio.Models
 {
-    public class Cliente
+    public class Veterinario
     {
         [Key]
         public string UsuarioId { get; set; } = string.Empty;
         public Usuario Usuario { get; set; } = default!;
 
-        public ICollection<Mascota>? Mascotas { get; set; } = new List<Mascota>();  
+        public ICollection<Turno>? Turnos { get; set; } = new List<Turno>();  
     }
 }

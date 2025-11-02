@@ -41,7 +41,15 @@
                                 <strong>Dueño:</strong> @Model.Mascota.Cliente.Usuario.Nombre
                             </div>
                             <div class="col-12">
-                                <strong>Veterinario:</strong> @Model.Veterinario.Usuario.Nombre
+                                <strong>Veterinario:</strong>
+                                @if (Model.Veterinario != null && Model.Veterinario.Usuario != null)
+                                {
+                                    @Model.Veterinario.Usuario.Nombre
+                                }
+                                else
+                                {
+                                    <span>No asignado</span>
+                                }
                             </div>
                         </div>
                     </div>

@@ -156,6 +156,8 @@ else
         </div>
 
         <!-- Información del Veterinario -->
+    @if (Model.Veterinario != null && Model.Veterinario.Usuario != null)
+    {
         <div class="col-lg-4">
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-info text-white py-3">
@@ -178,6 +180,7 @@ else
                 </div>
             </div>
         </div>
+        }
 
         <!-- Información de la Mascota -->
         <div class="col-lg-4">

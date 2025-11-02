@@ -77,10 +77,9 @@
                             @if (esAdministrador)
                             {
                                 <td class="align-middle">
-                                    <small>@turno.Veterinario?.Usuario.Nombre</small>
+                                    <small>@(turno.Veterinario?.Usuario?.Nombre ?? "No asignado")</small>
                                 </td>
-                            }                            
-
+                            }
                             <td class="align-middle">
                                 @{
                                     var badgeClass = turno.EstadoTurno switch
@@ -162,7 +161,8 @@
     <script>
         $(document).ready(function () {
             var mensajeExito = '@TempData["MensajeExito"]';
-
+            var mensajeError = '@TempData["MensajeError"]';
+            
             $('#tablaTurnos').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
@@ -182,7 +182,17 @@
                     timer: 3000,
                     timerProgressBar: true
                 });
-            }      
+            }   
+            
+             if (mensajeError)
+            {
+                    Swal.fire({
+                        title: 'Error',
+                        text: mensajeError,
+                        icon: 'error',
+                        confirmButtonColor: '#9d4edd'
+                    });
+            }
 
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

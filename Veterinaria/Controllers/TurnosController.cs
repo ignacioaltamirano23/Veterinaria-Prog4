@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace VetTest.Controllers
+namespace Veterinaria.Controllers
 {
     [Authorize(Roles = "Administrador,Veterinario")]
     public class TurnosController : Controller
@@ -25,46 +25,24 @@ namespace VetTest.Controllers
         // GET: Turnos
         public async Task<IActionResult> Index()
         {
-            IQueryable<Turno> turnosQuery = _context.Turnos
-                .Include(t => t.Mascota)
-                .ThenInclude(m => m.Cliente)
-                .ThenInclude(c => c.Usuario)
-                .Include(t => t.Veterinario)
-                .ThenInclude(v => v.Usuario);
-
-            // Si es veterinario, solo ver sus turnos
-            if (EsVeterinario)
-            {
-                turnosQuery = turnosQuery.Where(t => t.Veterinario.UsuarioId == IdUsuario);
-            }                
-
-            var turnos = await turnosQuery
-                .OrderByDescending(t => t.FechaHora)
-                .ToListAsync();
-
+            var turnos = await GetTurnosQuery().ToListAsync();
             return View(turnos);
         }
-
+                       
         // GET: Turnos/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
 
-            var turno = await _context.Turnos
-                .Include(t => t.Mascota)
-                .ThenInclude(m => m.Cliente)
-                .ThenInclude(c => c.Usuario)
-                .Include(t => t.Veterinario)
-                .ThenInclude(v => v.Usuario)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var turno = await GetTurnosBaseQuery()
+                .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (turno == null) return NotFound();            
-
-            // Validar acceso de veterinario
-            if (EsVeterinario && turno.Veterinario.UsuarioId != IdUsuario)
+            if (turno == null) return NotFound();  
+            
+            if(!await TieneAccesoTurno(turno.Id))
             {
                 return RedirectToAction("AccessDenied", "Login");
-            }                
+            }     
 
             return View(turno);
         }
@@ -94,23 +72,50 @@ namespace VetTest.Controllers
         {
             turno.EstadoTurno = EstadoTurno.Confirmado;
 
+            // Validaciones
             if (EsAdmin && string.IsNullOrEmpty(turno.VeterinarioId))
             {
-                ViewBag.MensajeError = "Debes seleccionar un veterinario para crear el turno.";
-                await CargarListasDesplegables(IdUsuario);
+                ModelState.AddModelError("VeterinarioId", "Debe seleccionar un veterinario.");
+            }
+
+            // Validar que la mascota existe
+            if (!await _context.Mascotas.AnyAsync(m => m.Id == turno.MascotaId))
+            {
+                ModelState.AddModelError("MascotaId", "La mascota seleccionada no existe.");
+            }
+
+            // Validar que el veterinario existe (si es admin)
+            if (EsAdmin && !string.IsNullOrEmpty(turno.VeterinarioId) &&
+                !await _context.Veterinarios.AnyAsync(v => v.UsuarioId == turno.VeterinarioId))
+            {
+                ModelState.AddModelError("VeterinarioId", "El veterinario seleccionado no existe.");
+            }
+
+            // Validar que no haya turnos solapados para el veterinario
+            if (await ExisteTurnoSolapado(turno))
+            {
+                ModelState.AddModelError("FechaHora", "Ya existe un turno para este veterinario en la fecha y hora seleccionada.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await CargarListasDesplegables(IdUsuario, turno.VeterinarioId);
                 return View(turno);
             }
 
-            if (ModelState.IsValid)
+            try
             {
                 _context.Add(turno);
                 await _context.SaveChangesAsync();
                 TempData["MensajeExito"] = "Turno creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-
-            await CargarListasDesplegables(IdUsuario);
-            return View(turno);
+            catch (Exception ex)
+            {
+                ViewBag.MensajeError = "Error al crear el turno. Intente nuevamente.";
+                await CargarListasDesplegables(IdUsuario, turno.VeterinarioId);
+                return View(turno);
+            }
         }
 
         // GET: Turnos/Edit/5
@@ -137,33 +142,57 @@ namespace VetTest.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
-            int id, 
+            int id,
             [Bind("Id,FechaHora,MascotaId,VeterinarioId,EstadoTurno")] Turno turno)
         {
             if (id != turno.Id) return NotFound();
 
-            if (EsVeterinario && turno.VeterinarioId != IdUsuario)
+            if (!await TieneAccesoTurno(id))
             {
                 return RedirectToAction("AccessDenied", "Login");
-            }                
+            }
 
-            if (EsAdmin && string.IsNullOrEmpty(turno.VeterinarioId))
+            if (!ModelState.IsValid)
             {
-                TempData["MensajeError"] = "Debes seleccionar un veterinario para actualizar el turno.";
                 await CargarListasDesplegables(IdUsuario, turno.VeterinarioId);
                 return View(turno);
             }
 
-            if (ModelState.IsValid)
+            // Validaciones
+            if (EsAdmin && string.IsNullOrEmpty(turno.VeterinarioId))
+            {
+                ModelState.AddModelError("VeterinarioId", "Debe seleccionar un veterinario.");
+            }
+
+            if (!await _context.Mascotas.AnyAsync(m => m.Id == turno.MascotaId))
+            {
+                ModelState.AddModelError("MascotaId", "La mascota seleccionada no existe.");
+            }
+                       
+            if (EsAdmin && !string.IsNullOrEmpty(turno.VeterinarioId) &&
+                !await _context.Veterinarios.AnyAsync(v => v.UsuarioId == turno.VeterinarioId))
+            {
+                ModelState.AddModelError("VeterinarioId", "El veterinario seleccionado no existe.");
+            }
+
+            if (await ExisteTurnoSolapado(turno))
+            {
+                ModelState.AddModelError("FechaHora", "Ya existe un turno para este veterinario en la fecha y hora seleccionada.");
+            }
+
+            try
             {
                 _context.Update(turno);
                 await _context.SaveChangesAsync();
                 TempData["MensajeExito"] = "Turno actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-
-            await CargarListasDesplegables(IdUsuario, turno.VeterinarioId);
-            return View(turno);
+            catch (Exception ex)
+            {
+                ViewBag.MensajeError = "Error al actualizar el turno.";
+                await CargarListasDesplegables(IdUsuario, turno.VeterinarioId);
+                return View(turno);
+            }            
         }
 
         [Authorize(Roles = "Administrador")]
@@ -191,14 +220,26 @@ namespace VetTest.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var turno = await _context.Turnos.FindAsync(id);
-
-            if (turno != null)
+            try
             {
+                var turno = await _context.Turnos.FindAsync(id);                
+
+                if (turno == null)
+                {
+                    TempData["MensajeError"] = "Turno no encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 _context.Turnos.Remove(turno);
                 await _context.SaveChangesAsync();
+
                 TempData["MensajeExito"] = "Turno eliminado correctamente.";
             }
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "Error al eliminar el turno.";
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -250,6 +291,53 @@ namespace VetTest.Controllers
             }
 
             ViewData["EstadosTurno"] = new SelectList(Enum.GetValues(typeof(EstadoTurno)));
+        }
+
+        private IQueryable<Turno> GetTurnosBaseQuery()
+        {
+            return _context.Turnos
+                .Include(t => t.Mascota)
+                .ThenInclude(m => m.Cliente)
+                .ThenInclude(c => c.Usuario)
+                .Include(t => t.Veterinario)
+                .ThenInclude(v => v.Usuario);
+        }
+
+        private IQueryable<Turno> GetTurnosQuery()
+        {
+            var query = GetTurnosBaseQuery();
+
+            if (EsVeterinario)
+            {
+                query = query.Where(t => t.Veterinario.UsuarioId == IdUsuario);
+            }
+
+            return query.OrderByDescending(t => t.FechaHora);
+        }  
+        
+        private async Task<bool> TieneAccesoTurno(int turnoId)
+        {
+            if (EsAdmin) return true;
+
+            if (EsVeterinario)
+            {
+                return await _context.Turnos
+                    .AnyAsync(t => t.Id == turnoId && t.Veterinario.UsuarioId == IdUsuario);
+            }
+
+            return false;
+        }
+
+        private async Task<bool> ExisteTurnoSolapado(Turno turno)
+        {
+            if (string.IsNullOrEmpty(turno.VeterinarioId))
+                return false;
+
+            return await _context.Turnos
+                .AnyAsync(t => t.VeterinarioId == turno.VeterinarioId
+                    && t.Id != turno.Id
+                    && t.FechaHora == turno.FechaHora
+                    && t.EstadoTurno != EstadoTurno.Cancelado);
         }
     }
 }

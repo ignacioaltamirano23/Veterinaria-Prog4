@@ -159,6 +159,7 @@
     <script>
         $(document).ready(function () {
             var mensajeExito = '@TempData["MensajeExito"]';
+            var mensajeError = '@TempData["MensajeError"]';
 
             $('#tablaUsuarios').DataTable({
                 language: {
@@ -184,7 +185,17 @@
                     timer: 3000,
                     timerProgressBar: true
                 });
-            }           
+            }
+
+             if (mensajeError)
+            {
+                Swal.fire({
+                    title: 'Error',
+                    text: mensajeError,
+                    icon: 'error',
+                    confirmButtonColor: '#9d4edd'
+                });
+            }
         });
     </script>
 }

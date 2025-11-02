@@ -74,8 +74,25 @@
     </div>
 </div>
 
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+            $(document).ready(function () {
+                var mensajeError = '@ViewBag.MensajeError';
+
+                if (mensajeError)
+                {
+                    Swal.fire({
+                        title: 'Error',
+                        text: mensajeError,
+                        icon: 'error',
+                        confirmButtonColor: '#9d4edd'
+                    });
+                }
+        });
+    </script>
 }

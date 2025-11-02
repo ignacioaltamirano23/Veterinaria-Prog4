@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace VetTest.Controllers
+namespace Veterinaria.Controllers
 {
     [AllowAnonymous]
     public class AccountController : Controller

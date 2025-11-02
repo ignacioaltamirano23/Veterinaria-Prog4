@@ -24,9 +24,7 @@ namespace Veterinaria.Controllers
         // GET: Mascotas 
         public async Task<IActionResult> Index()
         {
-            var mascotas = await _context.Mascotas
-                .Include(m => m.Cliente)
-                .ThenInclude(c => c.Usuario)
+            var mascotas = await GetMascotasBaseQuery()
                 .OrderBy(m => m.Nombre)
                 .ToListAsync();
 
@@ -36,23 +34,12 @@ namespace Veterinaria.Controllers
         // GET: Mascotas/Details/5 
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();            
 
-            var mascota = await _context.Mascotas
-                .Include(m => m.Cliente)
-                .ThenInclude(c => c.Usuario)
-                .Include(m => m.Turnos)
-                .ThenInclude(t => t.Veterinario)
-                .ThenInclude(v => v.Usuario)
+            var mascota = await GetMascotasConTurnosQuery()
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (mascota == null)
-            {
-                return NotFound();
-            }
+            if (mascota == null) return NotFound();
 
             return View(mascota);
         }
@@ -71,16 +58,45 @@ namespace Veterinaria.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Create([Bind("Nombre,Especie,Raza,FechaNacimiento,ClienteId")] Mascota mascota)
         {
-            if (ModelState.IsValid)
+            // Validar que el cliente existe
+            if (!await _context.Clientes.AnyAsync(c => c.UsuarioId == mascota.ClienteId))
+            {
+                ModelState.AddModelError("ClienteId", "El cliente seleccionado no existe.");
+            }
+
+            // Validar fecha de nacimiento no futura
+            if (mascota.FechaNacimiento > DateTime.Now)
+            {
+                ModelState.AddModelError("FechaNacimiento", "La fecha de nacimiento no puede ser futura.");
+            }
+
+            // Validar que no exista mascota con mismo nombre para el mismo cliente
+            if (await _context.Mascotas.AnyAsync(m =>
+                m.Nombre == mascota.Nombre &&
+                m.ClienteId == mascota.ClienteId))
+            {
+                ModelState.AddModelError("Nombre", "Ya existe una mascota con este nombre para el cliente seleccionado.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await CargarClientes();
+                return View(mascota);
+            }
+
+            try
             {
                 _context.Add(mascota);
                 await _context.SaveChangesAsync();
                 TempData["MensajeExito"] = $"Mascota {mascota.Nombre} registrada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-
-            await CargarClientes();
-            return View(mascota);
+            catch (Exception ex)
+            {
+                ViewBag.MensajeError = "Error al crear la mascota. Intente nuevamente.";
+                await CargarClientes();
+                return View(mascota);
+            }         
         }
 
         // GET: Mascotas/Edit/5 
@@ -115,37 +131,58 @@ namespace Veterinaria.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            // Validar que el cliente existe
+            if (!await _context.Clientes.AnyAsync(c => c.UsuarioId == mascota.ClienteId))
+            {
+                ModelState.AddModelError("ClienteId", "El cliente seleccionado no existe.");
+            }
+
+            // Validar fecha de nacimiento no futura
+            if (mascota.FechaNacimiento > DateTime.Now)
+            {
+                ModelState.AddModelError("FechaNacimiento", "La fecha de nacimiento no puede ser futura.");
+            }
+
+            // Validar que no exista mascota con mismo nombre para el mismo cliente (excluyendo esta mascota)
+            if (await _context.Mascotas.AnyAsync(m =>
+                m.Nombre == mascota.Nombre &&
+                m.ClienteId == mascota.ClienteId &&
+                m.Id != mascota.Id)) // ✅ Excluir la mascota actual
+            {
+                ModelState.AddModelError("Nombre", "Ya existe una mascota con este nombre para el cliente seleccionado.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await CargarClientes();
+                return View(mascota);
+            }
+
+            try
             {
                 _context.Update(mascota);
                 await _context.SaveChangesAsync();
                 TempData["MensajeExito"] = $"Mascota {mascota.Nombre} actualizada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-
-            await CargarClientes();
-            return View(mascota);
+            catch (Exception ex)
+            {
+                ViewBag.MensajeError = "Error al actualizar la mascota.";
+                await CargarClientes();
+                return View(mascota);
+            }
         }
 
         // GET: Mascotas/Delete/5
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var mascota = await _context.Mascotas
-                .Include(m => m.Cliente)
-                .ThenInclude(c => c.Usuario)
-                .Include(m => m.Turnos)
+            var mascota = await GetMascotasConTurnosQuery()
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (mascota == null)
-            {
-                return NotFound();
-            }
+            if (mascota == null) return NotFound();
 
             return View(mascota);
         }
@@ -174,6 +211,21 @@ namespace Veterinaria.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        private IQueryable<Mascota> GetMascotasBaseQuery()
+        {
+            return _context.Mascotas
+                .Include(m => m.Cliente)
+                .ThenInclude(c => c.Usuario);
+        }
+
+        private IQueryable<Mascota> GetMascotasConTurnosQuery()
+        {
+            return GetMascotasBaseQuery()
+                .Include(m => m.Turnos)
+                .ThenInclude(t => t.Veterinario)
+                .ThenInclude(v => v.Usuario);
         }
 
         private async Task CargarClientes()

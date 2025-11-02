@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace VetTest.Controllers
+namespace Veterinariat.Controllers
 {
     [Authorize(Roles = "Cliente")]
     public class ClientesController : Controller
@@ -20,39 +20,50 @@ namespace VetTest.Controllers
         // GET: Cliente/MisMascotas 
         public async Task<IActionResult> MisMascotas()
         {
-            var clienteId = await ObtenerClienteId();
-            if (clienteId == null)
-            {
-                return RedirectToAction("AccessDenied", "Login");
+            try
+            {               
+                var clienteId = await ObtenerClienteId();
+                if (clienteId == null)
+                {
+                    TempData["MensajeError"] = "No se encontró información del cliente.";
+                    return RedirectToAction("AccessDenied", "Login");
+                }
+
+                var mascotas = await GetMascotasClienteQuery(clienteId)
+                    .OrderBy(m => m.Nombre)
+                    .ToListAsync();               
+
+                return View(mascotas);
             }
-
-            var mascotas = await _context.Mascotas
-                .Where(m => m.ClienteId == clienteId)
-                .Include(m => m.Turnos)
-                .OrderBy(m => m.Nombre)
-                .ToListAsync();
-
-            return View(mascotas);
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "Error al cargar las mascotas.";
+                return RedirectToAction("Index", "Home");
+            }
         }
 
         // GET: Cliente/MisTurnos 
         public async Task<IActionResult> MisTurnos()
         {
-            var clienteId = await ObtenerClienteId();
-            if (clienteId == null)
+            try
             {
-                return RedirectToAction("AccessDenied", "Login");
+                var clienteId = await ObtenerClienteId();
+                if (clienteId == null)
+                {
+                    return RedirectToAction("AccessDenied", "Login");
+                }
+
+                var turnos = await GetTurnosClienteQuery(clienteId)
+                    .OrderByDescending(t => t.FechaHora)
+                    .ToListAsync();
+
+                return View(turnos);
             }
-
-            var turnos = await _context.Turnos
-                .Include(t => t.Mascota)
-                .Include(t => t.Veterinario)
-                .ThenInclude(v => v.Usuario)
-                .Where(t => t.Mascota.ClienteId == clienteId)
-                .OrderByDescending(t => t.FechaHora)
-                .ToListAsync();
-
-            return View(turnos);
+            catch (Exception ex)
+            {
+                TempData["MensajeError"] = "Error al cargar los turnos.";
+                return RedirectToAction("Index", "Home");
+            }
         }
 
         // POST: Cliente/CancelarTurno/5 
@@ -73,12 +84,6 @@ namespace VetTest.Controllers
             if (turno == null)
             {
                 TempData["MensajeError"] = "Turno no encontrado.";
-                return RedirectToAction(nameof(MisTurnos));
-            }
-
-            if (turno.FechaHora < DateTime.Now)
-            {
-                TempData["MensajeError"] = "No se puede cancelar un turno que ya pasó.";
                 return RedirectToAction(nameof(MisTurnos));
             }
 
@@ -105,6 +110,24 @@ namespace VetTest.Controllers
                 .FirstOrDefaultAsync(u => u.Id.Equals(usuarioId));
 
             return usuario?.Cliente?.UsuarioId;
+        }
+
+        private IQueryable<Mascota> GetMascotasClienteQuery(string clienteId)
+        {
+            return _context.Mascotas
+                .Where(m => m.ClienteId == clienteId)
+                .Include(m => m.Turnos)
+                .ThenInclude(t => t.Veterinario)
+                .ThenInclude(v => v.Usuario);
+        }
+
+        private IQueryable<Turno> GetTurnosClienteQuery(string clienteId)
+        {
+            return _context.Turnos
+                .Include(t => t.Mascota)
+                .Include(t => t.Veterinario)
+                .ThenInclude(v => v.Usuario)
+                .Where(t => t.Mascota.ClienteId == clienteId);
         }
     }
 }

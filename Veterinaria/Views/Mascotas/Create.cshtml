@@ -87,4 +87,31 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function () {
+            var mensajeExito = '@TempData["MensajeExito"]';
+            var mensajeError = '@ViewBag.MensajeError';
+
+            if (mensajeExito) {
+                Swal.fire({
+                    title: '¡Éxito!',
+                    text: mensajeExito,
+                    icon: 'success',
+                    confirmButtonColor: '#9d4edd',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+
+            if (mensajeError) {
+                Swal.fire({
+                    title: 'Error',
+                    text: mensajeError,
+                    icon: 'error',
+                    confirmButtonColor: '#9d4edd'
+                });
+            }
+        });
+    </script>
 }

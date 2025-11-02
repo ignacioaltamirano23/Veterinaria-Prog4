@@ -345,24 +345,8 @@ select.form-control {
 }
 
 /* =========================================================
-   CHARTS Y ESTADOS VACÍOS
+   ESTADOS VACÍOS
 ========================================================= */
-.chart-container {
-    position: relative;
-    height: 40vh;
-    min-height: 300px;
-    max-height: 500px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-#estadoTurnosChart {
-    max-width: 100%;
-    max-height: 100%;
-}
-
 .colorful-empty-card {
     border-radius: 16px;
     background: white;
@@ -378,6 +362,25 @@ select.form-control {
     justify-content: center;
     box-shadow: 0 4px 15px var(--shadow-normal);
 }
+
+/* =========================================================
+   TOOLTIPS
+========================================================= */
+.tooltip {
+    font-size: 0.875rem;
+}
+
+.tooltip-inner {
+    background: var(--colorful-gradient);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+}
+
+.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: var(--colorful-primary);
+}
+
 
 /* =========================================================
    EXTRAS Y ANIMACIONES

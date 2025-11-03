@@ -96,7 +96,7 @@ namespace Veterinaria.Controllers
                 ViewBag.MensajeError = "Error al crear la mascota. Intente nuevamente.";
                 await CargarClientes();
                 return View(mascota);
-            }         
+            }
         }
 
         // GET: Mascotas/Edit/5 
@@ -131,6 +131,8 @@ namespace Veterinaria.Controllers
                 return NotFound();
             }
 
+
+
             // Validar que el cliente existe
             if (!await _context.Clientes.AnyAsync(c => c.UsuarioId == mascota.ClienteId))
             {
@@ -147,7 +149,7 @@ namespace Veterinaria.Controllers
             if (await _context.Mascotas.AnyAsync(m =>
                 m.Nombre == mascota.Nombre &&
                 m.ClienteId == mascota.ClienteId &&
-                m.Id != mascota.Id)) // ✅ Excluir la mascota actual
+                m.Id != mascota.Id)) // ✅ Excluir la mascota actual 
             {
                 ModelState.AddModelError("Nombre", "Ya existe una mascota con este nombre para el cliente seleccionado.");
             }

@@ -121,6 +121,7 @@ namespace Veterinaria.Controllers
         // GET: Turnos/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            // Validaciones
             if (id == null) return NotFound();
                         
             var turno = await _context.Turnos
@@ -220,6 +221,7 @@ namespace Veterinaria.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Validaciones
             try
             {
                 var turno = await _context.Turnos.FindAsync(id);                

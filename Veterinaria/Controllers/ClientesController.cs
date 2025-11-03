@@ -20,6 +20,7 @@ namespace Veterinariat.Controllers
         // GET: Cliente/MisMascotas 
         public async Task<IActionResult> MisMascotas()
         {
+            // Validaciones
             try
             {               
                 var clienteId = await ObtenerClienteId();
@@ -45,6 +46,7 @@ namespace Veterinariat.Controllers
         // GET: Cliente/MisTurnos 
         public async Task<IActionResult> MisTurnos()
         {
+            // Validaciones
             try
             {
                 var clienteId = await ObtenerClienteId();
